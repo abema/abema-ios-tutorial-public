@@ -25,10 +25,12 @@ extension RepositoryListCellStream {
 
     struct Output: OutputType {
         let titleText: BehaviorRelay<String>
+        let detailTextLabel: BehaviorRelay<String>
     }
 
     struct State: StateType {
         let titleText = BehaviorRelay<String>(value: "")
+        let detailTextLabel = BehaviorRelay<String>(value: "")
     }
 
     struct Extra: ExtraType {}
@@ -49,6 +51,14 @@ extension RepositoryListCellStream {
             .bind(to: state.titleText)
             .disposed(by: disposeBag)
 
-        return Output(titleText: state.titleText)
+        repository
+            .map { $0.description }
+            .bind(to: state.detailTextLabel)
+            .disposed(by: disposeBag)
+
+        return Output(
+            titleText: state.titleText,
+            detailTextLabel: state.detailTextLabel
+        )
     }
 }

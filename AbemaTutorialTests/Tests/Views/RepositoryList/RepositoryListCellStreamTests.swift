@@ -24,6 +24,19 @@ final class RepositoryListCellStreamTests: XCTestCase {
 
         XCTAssertEqual(titleText.value, "owner / name")
     }
+
+    func testDetailTextLabel() {
+        let testTarget = dependency.testTarget
+
+        let owner = User(id: 1110, login: "koki")
+        let repository = Repository(id: 1110, name: "hatena", description: "hatena???", owner: owner)
+
+        let detailTextLabel = WatchStack(testTarget.output.detailTextLabel)
+
+        testTarget.input.repository(repository)
+
+        XCTAssertEqual(detailTextLabel.value, repository.description)
+    }
 }
 
 extension RepositoryListCellStreamTests {
