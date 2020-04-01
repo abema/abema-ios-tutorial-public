@@ -65,6 +65,10 @@ extension RepositoryListViewStream {
             .bind(to: state.repositories)
             .disposed(by: disposeBag)
 
+        fetchRepositoriesAction.executing
+            .bind(to: state.isRefreshControlRefreshing)
+            .disposed(by: disposeBag)
+
         fetchRepositoriesAction.errors
             .subscribe(onNext: { error in print("API Error: \(error)") })
             .disposed(by: disposeBag)
