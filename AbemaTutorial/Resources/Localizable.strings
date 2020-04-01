@@ -1,2 +1,6 @@
+// MARK: - Alert
+"FetchErrorAlertTitle" = "エラー";
+"FetchErrorAlertMessage" = "エラーが発生しました。\nもう一度お試しください。";
+
 // MARK: - Button
 "Close" = "閉じる";

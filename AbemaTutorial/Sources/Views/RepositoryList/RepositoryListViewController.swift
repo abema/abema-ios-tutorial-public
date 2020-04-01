@@ -41,6 +41,12 @@ final class RepositoryListViewController: UIViewController {
         refreshControl.rx.controlEvent(.valueChanged)
             .bind(to: viewStream.input.accept(for: \.refreshControlValueChanged))
             .disposed(by: disposeBag)
+
+        viewStream.output.presentFetchErrorAlert
+            .bind(to: Binder(self) { me, _ in
+                me.presentFetchErrorAlert()
+            })
+            .disposed(by: disposeBag)
     }
 
     required init?(coder aDecoder: NSCoder) {
@@ -65,5 +71,18 @@ final class RepositoryListViewController: UIViewController {
         super.viewWillAppear(animated)
 
         viewStream.input.viewWillAppear(())
+    }
+
+    private func presentFetchErrorAlert() {
+        let alertController = UIAlertController(title: L10n.fetchErrorAlertTitle,
+                                                message: L10n.fetchErrorAlertMessage,
+                                                preferredStyle: .alert)
+
+        let closeAction = UIAlertAction(title: L10n.close, style: .cancel) { [weak self] _ in
+            self?.viewStream.input.fetchErrorAlertDismissed(())
+        }
+
+        alertController.addAction(closeAction)
+        present(alertController, animated: true)
     }
 }

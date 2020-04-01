@@ -21,12 +21,14 @@ extension RepositoryListViewStream {
     struct Input: InputType {
         let viewWillAppear = PublishRelay<Void>()
         let refreshControlValueChanged = PublishRelay<Void>()
+        let fetchErrorAlertDismissed = PublishRelay<Void>()
     }
 
     struct Output: OutputType {
         let repositories: BehaviorRelay<[Repository]>
         let reloadData: PublishRelay<Void>
         let isRefreshControlRefreshing: BehaviorRelay<Bool>
+        let presentFetchErrorAlert: PublishRelay<Void>
     }
 
     struct State: StateType {
@@ -51,10 +53,12 @@ extension RepositoryListViewStream {
 
         let viewWillAppear = dependency.inputObservables.viewWillAppear
         let refreshControlValueChanged = dependency.inputObservables.refreshControlValueChanged
+        let fetchErrorAlertDismissed = dependency.inputObservables.fetchErrorAlertDismissed
 
         let fetchRepositories = Observable
             .merge(viewWillAppear,
-                   refreshControlValueChanged)
+                   refreshControlValueChanged,
+                   fetchErrorAlertDismissed)
 
         fetchRepositories
             .map { (limit: Const.count, offset: 0) }
@@ -69,8 +73,11 @@ extension RepositoryListViewStream {
             .bind(to: state.isRefreshControlRefreshing)
             .disposed(by: disposeBag)
 
+        let presentFetchErrorAlert = PublishRelay<Void>()
+
         fetchRepositoriesAction.errors
-            .subscribe(onNext: { error in print("API Error: \(error)") })
+            .map(void)
+            .bind(to: presentFetchErrorAlert)
             .disposed(by: disposeBag)
 
         let reloadData = PublishRelay<Void>()
@@ -82,7 +89,8 @@ extension RepositoryListViewStream {
 
         return Output(repositories: state.repositories,
                       reloadData: reloadData,
-                      isRefreshControlRefreshing: state.isRefreshControlRefreshing)
+                      isRefreshControlRefreshing: state.isRefreshControlRefreshing,
+                      presentFetchErrorAlert: presentFetchErrorAlert)
     }
 }
 
