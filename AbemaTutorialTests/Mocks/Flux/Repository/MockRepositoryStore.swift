@@ -9,4 +9,10 @@ final class MockRepositoryStore: RepositoryStoreType {
     }
 
     let _repositories = BehaviorRelay<[Repository]>(value: [])
+
+    var bookmarks: Property<[Repository]> {
+        return Property(_bookmarks)
+    }
+
+    let _bookmarks = BehaviorRelay<[Repository]>(value: [])
 }

@@ -1,4 +1,4 @@
-struct User: Decodable, Equatable {
+struct User: Codable, Equatable {
     let id: Int64
     let login: String
 

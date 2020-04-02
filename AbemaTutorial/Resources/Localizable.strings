@@ -1,6 +1,12 @@
 // MARK: - Alert
 "FetchErrorAlertTitle" = "エラー";
 "FetchErrorAlertMessage" = "エラーが発生しました。\nもう一度お試しください。";
+"BookmarkAlertMessage" = "お気に入りに登録しますか？";
+"UnbookmarkAlertMessage" = "お気に入りから削除しますか？";
+"AlreadyBookmarkedAlertTitle" = "お気に入り";
+"AlreadyBookmarkedAlertMessage" = "このレポジトリは既に登録されています。";
 
 // MARK: - Button
+"Bookmark" = "登録する";
+"Unbookmark" = "削除する";
 "Close" = "閉じる";

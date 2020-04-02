@@ -19,9 +19,13 @@ final class RepositoryListViewStream: UnioStream<RepositoryListViewStream>, Repo
 
 extension RepositoryListViewStream {
     struct Input: InputType {
+        let viewDidAppear = PublishRelay<Void>()
         let viewWillAppear = PublishRelay<Void>()
         let refreshControlValueChanged = PublishRelay<Void>()
         let fetchErrorAlertDismissed = PublishRelay<Void>()
+        let didSelectCell = PublishRelay<IndexPath>()
+        let didBookmarkRepository = PublishRelay<Repository>()
+        let didUnbookmarkRepository = PublishRelay<Repository>()
     }
 
     struct Output: OutputType {
@@ -29,10 +33,13 @@ extension RepositoryListViewStream {
         let reloadData: PublishRelay<Void>
         let isRefreshControlRefreshing: BehaviorRelay<Bool>
         let presentFetchErrorAlert: PublishRelay<Void>
+        let presentBookmarkAlert: PublishRelay<(IndexPath, Repository)>
+        let presentUnbookmarkAlert: PublishRelay<(IndexPath, Repository)>
     }
 
     struct State: StateType {
         let repositories = BehaviorRelay<[Repository]>(value: [])
+        let bookmarks = BehaviorRelay<[Repository]>(value: [])
         let isRefreshControlRefreshing = BehaviorRelay<Bool>(value: false)
     }
 
@@ -51,9 +58,19 @@ extension RepositoryListViewStream {
         let flux = extra.flux
         let fetchRepositoriesAction = extra.fetchRepositoriesAction
 
+        let viewDidAppear = dependency.inputObservables.viewDidAppear
         let viewWillAppear = dependency.inputObservables.viewWillAppear
         let refreshControlValueChanged = dependency.inputObservables.refreshControlValueChanged
         let fetchErrorAlertDismissed = dependency.inputObservables.fetchErrorAlertDismissed
+        let didSelectCell = dependency.inputObservables.didSelectCell
+        let didBookmarkRepository = dependency.inputObservables.didBookmarkRepository
+        let didUnbookmarkRepository = dependency.inputObservables.didUnbookmarkRepository
+
+        viewDidAppear
+            .subscribe(onNext: { _ in
+                flux.repositoryAction.load()
+            })
+            .disposed(by: disposeBag)
 
         let fetchRepositories = Observable
             .merge(viewWillAppear,
@@ -67,6 +84,10 @@ extension RepositoryListViewStream {
 
         flux.repositoryStore.repositories.asObservable()
             .bind(to: state.repositories)
+            .disposed(by: disposeBag)
+
+        flux.repositoryStore.bookmarks.asObservable()
+            .bind(to: state.bookmarks)
             .disposed(by: disposeBag)
 
         fetchRepositoriesAction.executing
@@ -87,10 +108,53 @@ extension RepositoryListViewStream {
             .bind(to: reloadData)
             .disposed(by: disposeBag)
 
+        let presentBookmarkAlert = PublishRelay<(IndexPath, Repository)>()
+        let presentUnbookmarkAlert = PublishRelay<(IndexPath, Repository)>()
+
+        didSelectCell
+            .withLatestFrom(flux.repositoryStore.repositories.asObservable()) { ($0, $1) }
+            .withLatestFrom(flux.repositoryStore.bookmarks.asObservable()) { ($0.0, $0.1, $1) }
+            .subscribe(onNext: { indexPath, repositories, bookmarks in
+                guard let repository = repositories[safe: indexPath.row] else {
+                    return
+                }
+
+                if bookmarks.contains(repository) {
+                    presentUnbookmarkAlert.accept((indexPath, repository))
+                } else {
+                    presentBookmarkAlert.accept((indexPath, repository))
+                }
+            })
+            .disposed(by: disposeBag)
+
+        didBookmarkRepository
+            .withLatestFrom(flux.repositoryStore.bookmarks.asObservable()) { ($0, $1) }
+            .subscribe(onNext: { repository, bookmarks in
+                guard !bookmarks.contains(repository) else {
+                    return
+                }
+
+                flux.repositoryAction.updateBookmarks(bookmarks: bookmarks + [repository])
+            })
+            .disposed(by: disposeBag)
+
+        didUnbookmarkRepository
+            .withLatestFrom(flux.repositoryStore.bookmarks.asObservable()) { ($0, $1) }
+            .subscribe(onNext: { repository, bookmarks in
+                guard bookmarks.contains(repository) else {
+                    return
+                }
+
+                flux.repositoryAction.updateBookmarks(bookmarks: bookmarks.filter({ $0 != repository }))
+            })
+            .disposed(by: disposeBag)
+
         return Output(repositories: state.repositories,
                       reloadData: reloadData,
                       isRefreshControlRefreshing: state.isRefreshControlRefreshing,
-                      presentFetchErrorAlert: presentFetchErrorAlert)
+                      presentFetchErrorAlert: presentFetchErrorAlert,
+                      presentBookmarkAlert: presentBookmarkAlert,
+                      presentUnbookmarkAlert: presentUnbookmarkAlert)
     }
 }
 

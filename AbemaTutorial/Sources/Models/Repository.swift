@@ -1,4 +1,4 @@
-struct Repository: Decodable, Equatable {
+struct Repository: Codable, Equatable {
     let id: Int64
     let name: String
     let description: String

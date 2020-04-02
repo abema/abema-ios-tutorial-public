@@ -12,6 +12,27 @@ final class RepositoryActionTests: XCTestCase {
         dependency = Dependency()
     }
 
+    func testLoad() {
+        let testTarget = dependency.testTarget
+        let userDefaults = dependency.userDefaults
+        let repositoryDispatcher = dependency.repositoryDispatcher
+
+        let mockRepositories = [Repository.mock()]
+
+        let updateBookmarks = WatchStack(repositoryDispatcher.updateBookmarks)
+
+        // 初期状態
+        XCTAssertEqual(updateBookmarks.events, [])
+        XCTAssertThrowsError(try userDefaults.get(key: .bookmarks, of: [Repository].self))
+
+        // お気に入り登録
+        userDefaults.set(key: .bookmarks, newValue: mockRepositories)
+        testTarget.load()
+
+        XCTAssertEqual(updateBookmarks.events, [.next(mockRepositories)])
+        XCTAssertNoThrow(try userDefaults.get(key: .bookmarks, of: [Repository].self))
+    }
+
     func testFetchRepositories() {
         let testTarget = dependency.testTarget
         let apiClient = dependency.apiClient
@@ -33,6 +54,26 @@ final class RepositoryActionTests: XCTestCase {
 
         XCTAssertEqual(fetchRepositories.events, [.next(true), .completed])
     }
+
+    func testUpdateBookmarks() {
+        let testTarget = dependency.testTarget
+        let userDefaults = dependency.userDefaults
+        let repositoryDispatcher = dependency.repositoryDispatcher
+
+        let mockRepositories = [Repository.mock()]
+
+        let updateBookmarks = WatchStack(repositoryDispatcher.updateBookmarks)
+
+        // 初期状態
+        XCTAssertEqual(updateBookmarks.events, [])
+        XCTAssertThrowsError(try userDefaults.get(key: .bookmarks, of: [Repository].self))
+
+        // お気に入り登録
+        testTarget.updateBookmarks(bookmarks: mockRepositories)
+
+        XCTAssertEqual(updateBookmarks.events, [.next(mockRepositories)])
+        XCTAssertNoThrow(try userDefaults.get(key: .bookmarks, of: [Repository].self))
+    }
 }
 
 extension RepositoryActionTests {
@@ -40,13 +81,17 @@ extension RepositoryActionTests {
         let testTarget: RepositoryAction
 
         let apiClient: MockAPIClient
-        let repositoryStore: MockRepositoryStore
+        let userDefaults: MockUserDefaults
+        let repositoryDispatcher: RepositoryDispatcher
 
         init() {
             apiClient = MockAPIClient()
-            repositoryStore = MockRepositoryStore()
+            userDefaults = MockUserDefaults()
+            repositoryDispatcher = RepositoryDispatcher()
 
-            testTarget = RepositoryAction(apiClient: apiClient)
+            testTarget = RepositoryAction(apiClient: apiClient,
+                                          userDefaults: userDefaults,
+                                          dispatcher: repositoryDispatcher)
         }
     }
 }

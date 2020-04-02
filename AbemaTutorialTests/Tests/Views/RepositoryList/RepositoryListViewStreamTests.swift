@@ -12,6 +12,20 @@ final class RepositoryListViewStreamTests: XCTestCase {
         dependency = Dependency()
     }
 
+    func testViewDidAppear() {
+        let testTarget = dependency.testTarget
+        let repositoryAction = dependency.repositoryAction
+
+        // 初期状態
+
+        XCTAssertFalse(repositoryAction.isLoadCalled)
+
+        // viewDidAppearの後
+
+        testTarget.input.viewDidAppear(())
+        XCTAssertTrue(repositoryAction.isLoadCalled)
+    }
+
     func testViewWillAppear() {
         let testTarget = dependency.testTarget
         let repositoryAction = dependency.repositoryAction
@@ -165,6 +179,92 @@ final class RepositoryListViewStreamTests: XCTestCase {
         XCTAssertEqual(reloadData.events, [])
         XCTAssertEqual(isRefreshControlRefreshing.value, false)
         XCTAssertEqual(presentFetchErrorAlert.events, [.next(true)])
+    }
+
+    func testDidSelectCell() {
+        let testTarget = dependency.testTarget
+        let repositoryStore = dependency.repositoryStore
+
+        let repositories = WatchStack(testTarget.output.repositories)
+        let presentBookmarkAlert = WatchStack(testTarget.output.presentBookmarkAlert)
+        let presentUnbookmarkAlert = WatchStack(testTarget.output.presentUnbookmarkAlert)
+
+        // 初期状態
+
+        XCTAssertEqual(repositories.value, [])
+        XCTAssertTrue(presentBookmarkAlert.events.isEmpty)
+        XCTAssertTrue(presentUnbookmarkAlert.events.isEmpty)
+
+        // セルの選択後
+
+        let repository = Repository.mock()
+        repositoryStore._repositories.accept([repository])
+
+        let indexPath = IndexPath(row: 0, section: 0)
+        testTarget.input.didSelectCell(indexPath)
+
+        XCTAssertEqual(repositories.value, [repository])
+        XCTAssertEqual(presentBookmarkAlert.value?.0, indexPath)
+        XCTAssertEqual(presentBookmarkAlert.value?.1, repository)
+        XCTAssertEqual(presentBookmarkAlert.events.count, 1)
+        XCTAssertTrue(presentUnbookmarkAlert.events.isEmpty)
+
+        // お気に入り登録済みのセルの選択後
+
+        repositoryStore._bookmarks.accept([repository])
+
+        testTarget.input.didSelectCell(indexPath)
+
+        XCTAssertEqual(repositories.value, [repository])
+        XCTAssertEqual(presentBookmarkAlert.value?.0, indexPath)
+        XCTAssertEqual(presentBookmarkAlert.value?.1, repository)
+        XCTAssertEqual(presentBookmarkAlert.events.count, 1)
+        XCTAssertEqual(presentUnbookmarkAlert.value?.0, indexPath)
+        XCTAssertEqual(presentUnbookmarkAlert.value?.1, repository)
+        XCTAssertEqual(presentUnbookmarkAlert.events.count, 1)
+    }
+
+    func testDidBookmarkRepository() {
+        let testTarget = dependency.testTarget
+        let repositoryAction = dependency.repositoryAction
+        let repositoryStore = dependency.repositoryStore
+
+        // 初期状態
+
+        XCTAssertNil(repositoryAction._updateBookmarksResult)
+
+        // お気に入り登録後
+
+        let repository1 = Repository.mock(id: 1)
+        let repository2 = Repository.mock(id: 2)
+
+        repositoryStore._bookmarks.accept([repository1])
+
+        testTarget.input.didBookmarkRepository(repository1)
+        XCTAssertNil(repositoryAction._updateBookmarksResult)
+
+        testTarget.input.didBookmarkRepository(repository2)
+        XCTAssertEqual(repositoryAction._updateBookmarksResult, [repository1, repository2])
+    }
+
+    func testDidUnbookmarkRepository() {
+        let testTarget = dependency.testTarget
+        let repositoryAction = dependency.repositoryAction
+        let repositoryStore = dependency.repositoryStore
+
+        // 初期状態
+
+        XCTAssertNil(repositoryAction._updateBookmarksResult)
+
+        // お気に入り削除後
+
+        let repository1 = Repository.mock(id: 1)
+        let repository2 = Repository.mock(id: 2)
+
+        repositoryStore._bookmarks.accept([repository1, repository2])
+
+        testTarget.input.didUnbookmarkRepository(repository1)
+        XCTAssertEqual(repositoryAction._updateBookmarksResult, [repository2])
     }
 }
 
