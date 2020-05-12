@@ -1,0 +1,6 @@
+input_dirs: Sources
+output_dirs: Sources/Gens
+strings:
+  paths: ./AbemaTutorial/Resources/Localizable.strings
+  templateName: flat-swift4
+  output: ./AbemaTutorial/Sources/Gens/StringsGen.swift

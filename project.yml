@@ -1,0 +1,33 @@
+name: AbemaTutorial
+options:
+  bundleIdPrefix: tv.abema
+
+targets:
+  AbemaTutorial:
+    type: application
+    platform: iOS
+    deploymentTarget: "11.0"
+    sources: [AbemaTutorial]
+    schemes:
+      AbemaTutorial:
+        testTargetName: AbemaTutorialTests
+    dependencies:
+      - carthage: RxCocoa
+      - carthage: RxRelay
+      - carthage: RxSwift
+      - carthage: Action
+      - carthage: RxOptional
+      - carthage: Unio
+    preBuildScripts:
+      - path: ./scripts/before-compile.sh
+        name: before-compile
+        shell: "/bin/bash"
+
+  AbemaTutorialTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "11.0"
+    sources: [AbemaTutorialTests]
+    dependencies:
+      - target: AbemaTutorial
+      - carthage: RxTest

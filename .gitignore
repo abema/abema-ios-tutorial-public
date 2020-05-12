@@ -1,0 +1,24 @@
+# Mac OSX
+#
+.DS_Store
+
+# Xcode
+#
+xcuserdata
+DerivedData
+*.xcodeproj
+
+# CocoaPods
+Pods/SwiftGen
+
+# Carthage
+# Carthage/Checkouts
+
+# abemaのLFS帯域を消費しないようにCarthage以下を全てignoreする
+Carthage
+
+# Bundler / Ruby Gem
+vendor/
+
+# Mint
+.mint

@@ -1,0 +1,34 @@
+name: Publish
+
+on:
+  push:
+    branches: [public]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Set Username and Authentication
+        run: |
+          git config --global user.name abematviosbot
+          git config --global user.email ios_bot@abema.tv
+          cat <<- EOS >> $HOME/.netrc
+          machine github.com
+          login abematviosbot
+          password ${{ secrets.BOT_GITHUB_TOKEN }}
+          EOS
+          chmod 600 $HOME/.netrc
+
+      - name: Publish
+        run: |
+          rm -rf .git
+          git init
+          git add .
+          git commit -m 'Initial commit'
+          git remote add public https://github.com/abema/abema-ios-tutorial-public
+          git push public master --force
+        env:
+          GITHUB_ACCESS_TOKEN: ${{ secrets.BOT_GITHUB_TOKEN }}

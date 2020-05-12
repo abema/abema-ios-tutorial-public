@@ -1,0 +1,5 @@
+---
+BUNDLE_PATH: "vendor/bundle"
+BUNDLE_CLEAN: "true"
+BUNDLE_RETRY: "5"
+BUNDLE_JOBS: "20"

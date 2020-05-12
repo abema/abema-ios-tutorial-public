@@ -1,0 +1,8 @@
+Pods-AbemaTutorial:
+  LABEL: Pods-AbemaTutorial
+  PROJECT_PATH: Pods.xcodeproj
+  UUID: D45C5FAC9EE39A3A7F4C78D79A1F2DB5
+SwiftGen:
+  LABEL: SwiftGen
+  PROJECT_PATH: SwiftGen.xcodeproj
+  UUID: 548854F438ED9C4BB6CE5AE9861083C9

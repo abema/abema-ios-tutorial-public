@@ -1,0 +1,4 @@
+github "ReactiveX/RxSwift" "5.0.1"
+github "RxSwiftCommunity/Action" "4.0.1"
+github "RxSwiftCommunity/RxOptional" "4.1.0"
+github "cats-oss/Unio" "0.9.0"

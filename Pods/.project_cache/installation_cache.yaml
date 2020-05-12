@@ -1,0 +1,21 @@
+BUILD_CONFIGURATIONS:
+  Debug: :debug
+  Release: :release
+CACHE_KEYS:
+  Pods-AbemaTutorial:
+    BUILD_SETTINGS_CHECKSUM:
+      Debug: f76f7954c07e301c0ff722ae5c494b92
+      Release: f76f7954c07e301c0ff722ae5c494b92
+  SwiftGen:
+    BUILD_SETTINGS_CHECKSUM:
+      SwiftGen:
+        :debug: 95ee185a2f1e20218926288ef9bd9c2b
+        :release: 95ee185a2f1e20218926288ef9bd9c2b
+    CHECKSUM: cd0bb0c9838c3fc90b78d35b19f492711b19eb55
+    PROJECT_NAME: SwiftGen
+    SPECS:
+      - SwiftGen (6.0.0)
+OBJECT_VERSION: 51
+PLUGINS:
+  cocoapods-stats:
+    {}
