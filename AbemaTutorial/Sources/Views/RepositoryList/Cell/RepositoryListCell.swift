@@ -20,6 +20,10 @@ final class RepositoryListCell: UITableViewCell {
         viewStream.output.titleText
             .bind(to: textLabel!.rx.text)
             .disposed(by: disposeBag)
+
+        viewStream.output.detailText
+            .bind(to: detailTextLabel!.rx.text)
+            .disposed(by: disposeBag)
     }
 
     required init?(coder aDecoder: NSCoder) {
