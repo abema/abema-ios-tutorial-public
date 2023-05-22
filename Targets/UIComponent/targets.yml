@@ -1,0 +1,58 @@
+targetTemplates:
+  UIComponent:
+    platform: iOS
+    sources:
+      - path: Targets/UIComponent/UIComponent
+        createIntermediateGroups: true
+    settings:
+      base:
+        DEVELOPMENT_ASSET_PATHS: $(SRCROOT)/Targets/UIComponent/UIComponent/Resources/Preview/Placeholders.xcassets
+
+targets:
+  UIComponent:
+    templates: [UIComponent, CocoaPods]
+    type: framework.static
+
+    # NOTE: 依存はXcodePreviewsと合わせる
+    dependencies:
+      - target: UIResource
+      - target: UILogicInterface
+      - target: Extension
+
+  XcodePreviews: # Xcode Previews用ターゲット
+    templates: [UIComponent, CocoaPods]
+    type: framework
+    settings:
+      base:
+        DEVELOPMENT_ASSET_PATHS: >
+          $(SRCROOT)/Targets/UIComponent/UIComponent/Resources/Preview/Placeholders.xcassets
+        ENABLE_PREVIEWS: true
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: $(inherited) ENABLE_PREVIEW
+
+    # NOTE: 依存はUIComponentと合わせる
+    #       フレームワークはデフォルトだとStatic Frameworkをリンクしないが、
+    #       プレビュー時はフレームワーク単体で（親アプリなしで）使われるため、
+    #       `link: true` を指定してリンクする
+    dependencies:
+      - target: UIResource
+      - target: UILogicInterface
+        link: true
+      - target: Extension
+        link: true
+
+  UIResource:
+    type: framework
+    platform: iOS
+    sources:
+      - path: Targets/UIComponent/UIResource
+        excludes: [Scripts, "Configs/*.yml"]
+        createIntermediateGroups: true
+    preBuildScripts:
+      - script: bash Targets/UIComponent/UIResource/scripts/swiftgen.sh
+        name: SwiftGen
+
+schemes:
+  XcodePreviews:
+    build:
+      targets:
+        XcodePreviews: all

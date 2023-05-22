@@ -1,0 +1,6 @@
+framework module Pods_XcodePreviews {
+  umbrella header "Pods-XcodePreviews-umbrella.h"
+
+  export *
+  module * { export * }
+}

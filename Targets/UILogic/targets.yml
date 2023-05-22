@@ -1,0 +1,23 @@
+targets:
+  UILogic:
+    templates: [ComponentFramework, CocoaPods]
+    templateAttributes:
+      componentName: UILogic
+    dependencies:
+      - target: Extension
+      - target: UseCaseInterface
+      - target: UILogicInterface
+      - target: UIResource
+
+  UILogicTests:
+    templates: [ComponentFrameworkTests, CocoaPods]
+    templateAttributes:
+      componentName: UILogic
+    dependencies:
+      - target: UILogic
+      - target: Extension
+      - target: TestExtension
+
+schemes:
+  UILogic:
+    templates: [ComponentFrameworkScheme]

@@ -1,0 +1,7 @@
+targets:
+  UILogicInterface:
+    templates: [ComponentFramework, CocoaPods]
+    templateAttributes:
+      componentName: UILogicInterface
+    dependencies:
+      - target: UseCaseInterface

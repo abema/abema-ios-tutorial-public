@@ -1,0 +1,22 @@
+targets:
+  UseCase:
+    templates: [ComponentFramework, CocoaPods]
+    templateAttributes:
+      componentName: UseCase
+    dependencies:
+      - target: Domain
+      - target: Extension
+      - target: UseCaseInterface
+
+  UseCaseTests:
+    templates: [ComponentFrameworkTests, CocoaPods]
+    templateAttributes:
+      componentName: UseCase
+    dependencies:
+      - target: UseCase
+      - target: Extension
+      - target: TestExtension
+
+schemes:
+  UseCase:
+    templates: [ComponentFrameworkScheme]

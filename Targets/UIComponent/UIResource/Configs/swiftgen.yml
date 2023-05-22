@@ -1,0 +1,7 @@
+strings:
+  inputs: ../Resources/Localizable.strings
+  outputs:
+    - templateName: flat-swift4
+      output: ../Sources/Generated/StringsGen.swift
+      params:
+        publicAccess: true

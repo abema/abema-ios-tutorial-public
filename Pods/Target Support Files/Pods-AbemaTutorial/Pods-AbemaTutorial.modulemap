@@ -1,0 +1,6 @@
+framework module Pods_AbemaTutorial {
+  umbrella header "Pods-AbemaTutorial-umbrella.h"
+
+  export *
+  module * { export * }
+}

@@ -1,0 +1,20 @@
+targets:
+  Domain:
+    templates: [ComponentFramework, CocoaPods]
+    templateAttributes:
+      componentName: Domain
+    dependencies:
+      - target: Extension
+
+  DomainTests:
+    templates: [ComponentFrameworkTests, CocoaPods]
+    templateAttributes:
+      componentName: Domain
+    dependencies:
+      - target: Domain
+      - target: Extension
+      - target: TestExtension
+
+schemes:
+  Domain:
+    templates: [ComponentFrameworkScheme]

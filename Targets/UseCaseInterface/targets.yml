@@ -1,0 +1,7 @@
+targets:
+  UseCaseInterface:
+    templates: [ComponentFramework, CocoaPods]
+    templateAttributes:
+      componentName: UseCaseInterface
+    dependencies:
+      - target: Extension

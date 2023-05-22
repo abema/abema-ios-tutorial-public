@@ -1,0 +1,38 @@
+targetTemplates:
+  CocoaPods:
+    sources:
+      # xcconfig が xcodeproj に直接追加されるのを防ぐために Pods ディレクトリ単位で追加
+      - path: ../../Pods/Target Support Files/Pods-${target_name}
+        createIntermediateGroups: true
+
+    configFiles:
+      Debug: ../../Pods/Target Support Files/Pods-${target_name}/Pods-${target_name}.debug.xcconfig
+      Release: ../../Pods/Target Support Files/Pods-${target_name}/Pods-${target_name}.release.xcconfig
+
+    settings:
+      base:
+        PODS_ROOT: $(SRCROOT)/Pods
+        PODS_BUILD_DIR: $(SRCROOT)/Pods/_Build
+        PODS_CONFIGURATION_BUILD_DIR: $(PODS_BUILD_DIR)/Release$(EFFECTIVE_PLATFORM_NAME)
+
+  CocoaPodsFrameworks:
+    postCompileScripts:
+      - name: "[CocoaPods] Embed Pods Frameworks"
+        script: >
+          BUILT_PRODUCTS_DIR=$PODS_CONFIGURATION_BUILD_DIR
+          "${PODS_ROOT}/Target Support Files/Pods-${target_name}/Pods-${target_name}-frameworks.sh"
+        inputFileLists:
+          - $(PODS_ROOT)/Target Support Files/Pods-${target_name}/Pods-${target_name}-frameworks-$(CONFIGURATION)-input-files.xcfilelist
+        outputFileLists:
+          - $(PODS_ROOT)/Target Support Files/Pods-${target_name}/Pods-${target_name}-frameworks-$(CONFIGURATION)-output-files.xcfilelist
+
+  CocoaPodsResources:
+    postCompileScripts:
+      - name: "[CocoaPods] Copy Resources"
+        script: >
+          BUILT_PRODUCTS_DIR=$PODS_CONFIGURATION_BUILD_DIR
+          "${PODS_ROOT}/Target Support Files/Pods-${target_name}/Pods-${target_name}-resources.sh"
+        inputFileLists:
+          - $(PODS_ROOT)/Target Support Files/Pods-${target_name}/Pods-${target_name}-resources-$(CONFIGURATION)-input-files.xcfilelist
+        outputFileLists:
+          - $(PODS_ROOT)/Target Support Files/Pods-${target_name}/Pods-${target_name}-resources-$(CONFIGURATION)-output-files.xcfilelist

@@ -1,0 +1,6 @@
+framework module Pods_UILogic {
+  umbrella header "Pods-UILogic-umbrella.h"
+
+  export *
+  module * { export * }
+}

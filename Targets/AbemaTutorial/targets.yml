@@ -1,0 +1,24 @@
+targets:
+  AbemaTutorial:
+    templates: [CocoaPods]
+    type: application
+    platform: iOS
+    deploymentTarget: "13.0"
+    sources:
+      - path: Targets/AbemaTutorial/AbemaTutorial
+        createIntermediateGroups: true
+    schemes:
+      AbemaTutorial:
+        testTargetName: AbemaTutorialTests
+    dependencies:
+      - target: Domain
+      - target: Extension
+      - target: Repository
+      - target: UIComponent
+      - target: UILogic
+      - target: UILogicInterface
+      - target: UseCaseInterface
+      - target: UseCase
+    preBuildScripts:
+      - script: bash Targets/AbemaTutorial/AbemaTutorial/scripts/before-compile.sh
+        name: before-compile

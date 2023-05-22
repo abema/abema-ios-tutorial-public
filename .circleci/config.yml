@@ -1,0 +1,256 @@
+# https://circleci.com/docs/2.0/configuration-reference
+# https://circleci.com/docs/2.0/testing-ios
+
+version: 2.1
+
+executors:
+  default: &default
+    macos:
+      xcode: 14.1
+    environment:
+      HOMEBREW_NO_AUTO_UPDATE: 1
+      FASTLANE_SKIP_UPDATE_CHECK: 1
+      SPACESHIP_ONLY_ALLOW_INTERACTIVE_2FA: "true"
+
+parameters:
+  run_test:
+    default: true
+    type: boolean
+
+commands:
+  shallow_checkout:
+    description: Shallow checkout and LFS caching
+    parameters:
+      depth:
+        type: integer
+        default: 1
+    steps:
+      - run:
+          name: Shallow checkout
+          command: |
+            # 標準のcheckoutステップではdepth指定ができないため、直接実行する
+            set -euo pipefail
+            # https://discuss.circleci.com/t/17007/5
+            CIRCLE_WORKING_DIRECTORY="${CIRCLE_WORKING_DIRECTORY/#\~/$HOME}"
+            mkdir -p $HOME/.ssh
+            ssh-keyscan -H github.com >> $HOME/.ssh/known_hosts
+            git config --global url."ssh://git@github.com/".insteadOf "https://github.com/"
+            export GIT_LFS_SKIP_SMUDGE=1
+            if [ -n "${CIRCLE_TAG:-}" ]; then
+              git clone \
+                --branch="$CIRCLE_TAG" \
+                --depth=<<parameters.depth>> \
+                "$CIRCLE_REPOSITORY_URL" "$CIRCLE_WORKING_DIRECTORY"
+            elif [ -n "${CIRCLE_BRANCH:-}" ]; then
+              git clone \
+                --branch="$CIRCLE_BRANCH" \
+                --depth=<<parameters.depth>> \
+                "$CIRCLE_REPOSITORY_URL" "$CIRCLE_WORKING_DIRECTORY"
+            else
+              git clone \
+                --depth=<<parameters.depth>> \
+                "$CIRCLE_REPOSITORY_URL" "$CIRCLE_WORKING_DIRECTORY"
+            fi
+            git reset --hard "$CIRCLE_SHA1"
+            git submodule update --init --recursive --recommend-shallow --depth=<<parameters.depth>>
+  lfs_pull:
+    steps:
+      - run:
+          name: Write out a list of LFS-managed files for caching
+          command: git lfs ls-files -l | cut -d' ' -f1 | sort > .assets-id
+      - restore_cache:
+          name: Restoring LFS cache
+          keys:
+            - v1-lfs-{{ checksum ".assets-id" }}
+            - v1-lfs-
+      - run:
+          name: Show LFS status
+          command: git lfs ls-files -d
+      - run: git lfs pull
+      - run: git lfs prune
+      - save_cache:
+          name: Saving LFS cache
+          paths: [./.git/lfs]
+          key: v1-lfs-{{ checksum ".assets-id" }}
+
+  prepare_ruby:
+    steps:
+      - run:
+          name: Specify Ruby version
+          command: |
+            if ! command -v chruby >/dev/null; then
+              echo "chruby not found; skipped"
+              exit 0
+            fi
+            RUBY_VERSION=$(cat .ruby-version | sed -E 's/^([0-9]+\.[0-9]+)(\.[0-9]+)?$/\1/g')
+            chruby $RUBY_VERSION
+            echo $'\n'"chruby $RUBY_VERSION" >> ~/.bash_profile
+      - run:
+          name: Install gems
+          command: |
+            touch Gemfile # キャッシュがある場合でも実行させる
+            make install-gems
+
+  prepare_netrc:
+    steps:
+      - run:
+          name: Set Username and Personal Token to netrc
+          command: |
+            cat \<<- EOS >> $HOME/.netrc
+            machine api.github.com
+              login abematv-native
+              password $GITHUB_ACCESS_TOKEN
+            EOS
+            chmod 600 $HOME/.netrc
+
+  start_simulator:
+    parameters:
+      device:
+        type: string
+    steps:
+      - run:
+          name: Starting iPhone Simulator
+          command: |
+            xcrun simctl boot "<<parameters.device>>"
+            export DEVICE="<<parameters.device>>"
+
+  restore_cache_rubygem:
+    steps:
+      - restore_cache:
+          name: Restoring RubyGems cache
+          keys:
+            - v2-rubygems-{{ arch }}-{{ .Branch }}-{{ checksum "Gemfile.lock" }}
+            - v2-rubygems-{{ arch }}-{{ .Branch }}-
+            - v2-rubygems-{{ arch }}-
+  save_cache_rubygem:
+    steps:
+      - save_cache:
+          name: Saving RubyGems cache
+          paths: [./vendor/bundle]
+          key: v2-rubygems-{{ arch }}-{{ .Branch }}-{{ checksum "Gemfile.lock" }}
+
+  restore_cache_mint:
+    steps:
+      - restore_cache:
+          name: Restoring Mint cache
+          keys:
+            # Mintは複数バージョン共存できるのでブランチとチェックサムを無視する
+            - v2-mint-
+  save_cache_mint:
+    steps:
+      - save_cache:
+          name: Saving Mint cache
+          paths: [./.mint]
+          key: v2-mint-{{ .Branch }}-{{ checksum "Mintfile" }}
+
+  store_xcresult_artifacts:
+    steps:
+      - run:
+          name: Archiving xcresults
+          when: always
+          command: tar czf build/xcresults{.tar.gz,}
+      - store_artifacts: { path: build/xcresults.tar.gz }
+
+  bootstrap:
+    steps:
+      - lfs_pull
+
+      - restore_cache_rubygem
+      - restore_cache_mint
+
+      - prepare_ruby
+      - prepare_netrc
+
+      - run: make bootstrap
+      - run: make mint-xcbeautify # .mint/配下に入れる
+
+      - save_cache_rubygem
+      - save_cache_mint
+
+jobs:
+  build:
+    executor: default
+
+    steps:
+      - start_simulator:
+          device: "iPhone 14"
+
+      - shallow_checkout
+      - bootstrap
+
+      - run:
+          name: Check project integration for CocoaPods
+          command: bundle exec fastlane run check_cocoapods_templates
+
+      - run: make --keep-going build | tee build.log | make test-output-formatter
+      - store_artifacts: { path: build.log }
+
+      - store_xcresult_artifacts
+
+      - when: # master以外のブランチでのみDangerを実行
+          condition: { not: { equal: [<<pipeline.git.branch>>, master] } }
+          steps:
+            # WORKAROUND: shallow cloneしているとDangerがfetchしなおしてしまうため、
+            # base commitまでの履歴だけを取得する
+            - run:
+                name: Fetch additional commits
+                when: always
+                command: >
+                  GITHUB_API_TOKEN=$GITHUB_ACCESS_TOKEN
+                  scripts/ci/git-deepen.sh
+                  -p $CIRCLE_PULL_REQUEST
+                  -r $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME
+            - run:
+                name: Danger
+                when: always
+                command: >
+                  DANGER_GITHUB_API_TOKEN=$GITHUB_ACCESS_TOKEN
+                  bundle exec danger
+  test:
+    executor: default
+
+    steps:
+      - start_simulator:
+          device: "iPhone 14"
+
+      - shallow_checkout
+      - bootstrap
+
+      - run:
+          name: Check project integration for CocoaPods
+          command: bundle exec fastlane run check_cocoapods_templates
+
+      - run: make --keep-going test | tee test.log | make test-output-formatter
+      - store_artifacts: { path: test.log }
+
+      - store_xcresult_artifacts
+
+      - when: # master以外のブランチでのみDangerを実行
+          condition: { not: { equal: [<<pipeline.git.branch>>, master] } }
+          steps:
+            # WORKAROUND: shallow cloneしているとDangerがfetchしなおしてしまうため、
+            # base commitまでの履歴だけを取得する
+            - run:
+                name: Fetch additional commits
+                when: always
+                command: >
+                  scripts/ci/git-deepen.sh
+                  -p $CIRCLE_PULL_REQUEST
+                  -r $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME
+            - run:
+                name: Danger
+                when: always
+                command: >
+                  DANGER_GITHUB_API_TOKEN=$GITHUB_ACCESS_TOKEN
+                  bundle exec danger
+
+workflows:
+  test:
+    when: <<pipeline.parameters.run_test>>
+    jobs:
+      - build:
+          filters:
+            branches: { ignore: /.*-master/ }
+      - test:
+          filters:
+            branches: { only: /.*-master/ }

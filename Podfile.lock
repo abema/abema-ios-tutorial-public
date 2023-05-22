@@ -1,0 +1,52 @@
+PODS:
+  - Action (5.0.0):
+    - RxCocoa (~> 6.0)
+    - RxSwift (~> 6.0)
+  - RxCocoa (6.5.0):
+    - RxRelay (= 6.5.0)
+    - RxSwift (= 6.5.0)
+  - RxRelay (6.5.0):
+    - RxSwift (= 6.5.0)
+  - RxSwift (6.5.0)
+  - RxTest (6.5.0):
+    - RxSwift (= 6.5.0)
+  - SwiftGen (6.5.1)
+  - SwiftLint (0.47.0)
+  - Unio (0.11.0):
+    - RxRelay (~> 6.0)
+    - RxSwift (~> 6.0)
+
+DEPENDENCIES:
+  - Action (= 5.0.0)
+  - RxCocoa (= 6.5.0)
+  - RxRelay (= 6.5.0)
+  - RxSwift (= 6.5.0)
+  - RxTest (= 6.5.0)
+  - SwiftGen (= 6.5.1)
+  - SwiftLint (= 0.47.0)
+  - Unio (= 0.11.0)
+
+SPEC REPOS:
+  trunk:
+    - Action
+    - RxCocoa
+    - RxRelay
+    - RxSwift
+    - RxTest
+    - SwiftGen
+    - SwiftLint
+    - Unio
+
+SPEC CHECKSUMS:
+  Action: 47f1825511907b4fcd79dd7a7db9526c20f78018
+  RxCocoa: 94f817b71c07517321eb4f9ad299112ca8af743b
+  RxRelay: 1de1523e604c72b6c68feadedd1af3b1b4d0ecbd
+  RxSwift: 5710a9e6b17f3c3d6e40d6e559b9fa1e813b2ef8
+  RxTest: eb2d23adefc5a5ebf5779c7792fa3edfe6ebcc17
+  SwiftGen: a6d22010845f08fe18fbdf3a07a8e380fd22e0ea
+  SwiftLint: d41cc46a2ae58ac6d9f26954bc89f1d72e71fdef
+  Unio: 6e57bd33dbcf38d281b0b420f75c0eae3bef0cf3
+
+PODFILE CHECKSUM: a2009e8ba78028d9158cce5b8d6028d58f406383
+
+COCOAPODS: 1.11.3

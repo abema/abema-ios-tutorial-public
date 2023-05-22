@@ -1,0 +1,36 @@
+targets:
+  Extension:
+    templates: [ComponentFramework, CocoaPods]
+    templateAttributes:
+      componentName: Extension
+
+  TestExtension:
+    templates: [ComponentFramework, CocoaPods]
+    templateAttributes:
+      componentName: Extension
+    sources:
+      - path: Targets/Extension/TestExtension
+        createIntermediateGroups: true
+    dependencies:
+      - target: Extension
+      - sdk: PLATFORM_DIR/Developer/Library/Frameworks/XCTest
+        root: DEVELOPER_DIR
+    settings:
+      base:
+        FRAMEWORK_SEARCH_PATHS: "$(inherited) $(PLATFORM_DIR)/Developer/Library/Frameworks"
+
+  ExtensionTests:
+    templates: [ComponentFrameworkTests, CocoaPods]
+    templateAttributes:
+      componentName: Extension
+    dependencies:
+      - target: Extension
+      - target: TestExtension
+
+schemes:
+  Extension:
+    templates: [ComponentFrameworkScheme]
+    build:
+      targets:
+        Extension: all
+        TestExtension: all

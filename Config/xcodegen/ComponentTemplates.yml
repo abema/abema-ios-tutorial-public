@@ -1,0 +1,38 @@
+targetTemplates:
+  ComponentFramework:
+    platform: iOS
+    type: framework.static
+    sources:
+      - path: ../../Targets/${componentName}/${target_name}
+        createIntermediateGroups: true
+    settings:
+      base:
+        TARGETED_DEVICE_FAMILY: 1,2
+        SUPPORTS_MACCATALYST: false
+        DEBUG_INFORMATION_FORMAT: dwarf # static library なので dSYM は不要
+
+  ComponentFrameworkTests:
+    platform: iOS
+    type: bundle.unit-test
+    sources:
+      - path: ../../Targets/${componentName}/${target_name}
+        createIntermediateGroups: true
+    settings:
+      base:
+        TARGETED_DEVICE_FAMILY: 1,2
+        SUPPORTS_MACCATALYST: false
+    transitivelyLinkDependencies: true
+
+schemeTemplates:
+  ComponentFrameworkScheme:
+    build:
+      targets:
+        "${scheme_name}": all
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - name: "${scheme_name}Tests"
+          parallelizable: true
+          randomExecutionOrder: true

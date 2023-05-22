@@ -1,0 +1,35 @@
+name: AbemaTutorial
+options:
+  bundleIdPrefix: tv.abema
+  minimumXcodeGenVersion: 2.10.1
+  deploymentTarget:
+    iOS: 13.0
+
+include:
+  - path: Config/xcodegen/ComponentTemplates.yml
+  - path: Config/xcodegen/CocoaPods.yml
+
+  # XcodeGenが解決する相対パスはデフォルトでincludeしたymlのパス基準になるが、
+  # ビルド設定などで指定されたパスはプロジェクト基準のため、統一するために
+  # relativePaths: false を指定する
+  - path: Targets/AbemaTutorial/targets.yml
+    relativePaths: false
+  - path: Targets/Domain/targets.yml
+    relativePaths: false
+  - path: Targets/Extension/targets.yml
+    relativePaths: false
+  - path: Targets/Repository/targets.yml
+    relativePaths: false
+  - path: Targets/UIComponent/targets.yml
+    relativePaths: false
+  - path: Targets/UILogic/targets.yml
+    relativePaths: false
+  - path: Targets/UILogicInterface/targets.yml
+    relativePaths: false
+  - path: Targets/UseCase/targets.yml
+    relativePaths: false
+  - path: Targets/UseCaseInterface/targets.yml
+    relativePaths: false
+settings:
+  # - workaround for fat binary (https://developer.apple.com/forums/thread/669274)
+  VALIDATE_WORKSPACE: true

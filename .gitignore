@@ -1,0 +1,21 @@
+# Mac OSX
+#
+.DS_Store
+
+# Xcode
+#
+xcuserdata
+DerivedData
+*.xcodeproj
+
+# CocoaPods
+/Pods/*
+!/Pods/Target Support Files
+/Pods/Target Support Files/*
+!/Pods/Target Support Files/Pods-*
+
+# Bundler / Ruby Gem
+vendor/
+
+# Mint
+.mint
